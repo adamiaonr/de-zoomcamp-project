@@ -80,7 +80,7 @@ def elt_main_flow(
   """
   output_dir = create_local_dir()
   for month in months:
-    file_path = download_from_kaggle(month, output_dir)
+    file_path = download_from_kaggle(month, output_dir, kaggle_dataset_id)
     write_to_gcs(file_path)
 
 if __name__ == "__main__":
