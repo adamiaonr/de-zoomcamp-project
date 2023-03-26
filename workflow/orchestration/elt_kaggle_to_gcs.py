@@ -19,7 +19,6 @@ def get_kaggle_client() -> KaggleApi:
 def write_to_gcs(path: Path) -> None:
   """Upload local file to GCS"""
   gcs_block_name = os.getenv('PREFECT_GCS_BUCKET_BLOCK')
-  print(gcs_block_name)
   gcs_block = GcsBucket.load(gcs_block_name)
   gcs_block.upload_from_path(from_path=path, to_path=path)
 
@@ -38,11 +37,6 @@ def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -
   Returns path of saved file.
   Data is downloaded in compressed .zip format.
   """
-  # fetch kaggle API user and key from secret block
-  username, key = fetch_kaggle_credentials()
-  # set kaggle credentials as env variables
-  set_kaggle_credentials(username, key)
-  
   # download dataset file for month
   file_path = f"mta_17{int(month):02d}.csv"
   get_kaggle_client().dataset_download_file(
@@ -54,6 +48,7 @@ def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -
 
   return output_dir/f"{file_path}.zip"
 
+@task()
 def fetch_kaggle_credentials() -> tuple[str]:
   """Fetches Kaggle API credentials from secret block"""
   kaggle_credentials_block = os.getenv('PREFECT_KAGGLE_CREDENTIALS_BLOCK')
@@ -62,6 +57,7 @@ def fetch_kaggle_credentials() -> tuple[str]:
 
   return kaggle_credentials.split(',')
 
+@task()
 def set_kaggle_credentials(username: str, key: str) -> None:
   """Sets passed Kaggle API username and key as environment variables"""
   os.environ['KAGGLE_USERNAME'] = username
@@ -78,6 +74,11 @@ def elt_main_flow(
     2. Loads each file to GCS
   No data transformations are applied at this point.
   """
+  # fetch kaggle API user and key from secret block
+  username, key = fetch_kaggle_credentials()
+  # set kaggle credentials as env variables
+  set_kaggle_credentials(username, key)
+  
   output_dir = create_local_dir()
   for month in months:
     file_path = download_from_kaggle(month, output_dir, kaggle_dataset_id)
