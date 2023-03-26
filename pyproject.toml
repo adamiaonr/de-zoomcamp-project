@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "nyc-bus"
+version = "0.1.0"
+description = "helper functions to apply data transformations in Kaggle's NYC bus dataset"
+authors = ["Antonio Rodrigues <adamiaonr@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "nyc_bus"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+prefect = "^2.8.7"
+prefect-gcp = {extras = ["cloud-storage"], version = "^0.3.0"}
+kaggle = "^1.5.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
