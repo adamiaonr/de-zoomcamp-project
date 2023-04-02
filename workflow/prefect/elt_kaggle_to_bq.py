@@ -34,6 +34,7 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
             chunksize=chunksize,
         )
     ):
+        # minor transformation : remove '.' from 'VehicleLocation.*' columns
         chunk.columns = [c.replace('.', '') for c in chunk.columns]
         chunk.to_gbq(
             destination_table=bq_table_name,
