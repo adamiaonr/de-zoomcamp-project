@@ -13,6 +13,7 @@ prefect = "^2.8.7"
 prefect-gcp = {extras = ["cloud-storage"], version = "^0.3.0"}
 kaggle = "^1.5.13"
 pandas = "^1.5.3"
+pandas-gbq = "^0.19.1"
 
 [tool.poetry.group.dev.dependencies]
 notebook = "^6.5.3"
