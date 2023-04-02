@@ -1,13 +1,11 @@
 import json
 import os
-from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
 from kaggle.api.kaggle_api_extended import KaggleApi  # pylint: disable-msg=E0611
 from prefect import flow, task
 from prefect.blocks.system import Secret
-from prefect.tasks import task_input_hash
 from prefect_gcp import GcpCredentials
 
 
@@ -57,7 +55,7 @@ def get_kaggle_client() -> KaggleApi:
     return client
 
 
-@task(retries=3, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
+@task(retries=3)
 def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
     """
     downloads the dataset file for the specified month from Kaggle into local path
