@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -84,24 +85,32 @@ def create_local_dir(path: Path = Path("data")) -> Path:
 
 
 @task()
-def set_kaggle_credentials(username: str, key: str) -> None:
+def set_kaggle_credentials(credentials: dict) -> None:
     """
     sets passed username and key as KAGGLE_USERNAME and KAGGLE_KEY env variables
     """
-    os.environ["KAGGLE_USERNAME"] = username
-    os.environ["KAGGLE_KEY"] = key
+    try:
+        os.environ["KAGGLE_USERNAME"] = credentials['KAGGLE_USERNAME']
+        os.environ["KAGGLE_KEY"] = credentials['KAGGLE_KEY']
+    except KeyError as exc:
+        raise KeyError(
+            (
+                f"could not find Kaggle credential keys {credentials.keys()}:"
+                " did you set your Kaggle secret block correctly?"
+            )
+        ) from exc
 
 
 @task()
-def fetch_kaggle_credentials() -> tuple[str]:
+def fetch_kaggle_credentials() -> dict:
     """
     fetches Kaggle API credentials from secret block
     """
     kaggle_credentials_block = os.getenv("PREFECT_KAGGLE_CREDENTIALS_BLOCK")
     secret_block = Secret.load(kaggle_credentials_block)
-    kaggle_credentials = secret_block.get()
+    kaggle_credentials = json.loads(secret_block.get())
 
-    return kaggle_credentials.split(",")
+    return kaggle_credentials
 
 
 @flow()
@@ -114,8 +123,8 @@ def elt_main_flow(
       1. downloads dataset files from Kaggle, one for each month
       2. loads each file to GCP BigQuery
     """
-    username, key = fetch_kaggle_credentials()
-    set_kaggle_credentials(username, key)
+    credentials = fetch_kaggle_credentials()
+    set_kaggle_credentials(credentials)
 
     output_dir = create_local_dir()
 
