@@ -113,7 +113,7 @@ def fetch_kaggle_credentials() -> dict:
     return kaggle_credentials
 
 
-@flow()
+@flow(log_prints=True)
 def elt_main_flow(
     months: list[int],
     kaggle_dataset_id: str = "stoney71/new-york-city-transport-statistics",
