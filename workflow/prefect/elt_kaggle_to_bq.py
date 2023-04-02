@@ -9,7 +9,7 @@ from prefect.blocks.system import Secret
 from prefect_gcp import GcpCredentials
 
 
-@task(retries=3, log_prints=True)
+@task(log_prints=True)
 def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
     """
     takes a file path and uploads the file to GCP BigQuery
