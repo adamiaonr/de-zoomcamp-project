@@ -1,0 +1,7 @@
+version: 2
+sources:
+  - name: staging
+    database: psychic-medley-376114
+    schema: nyc_bus_db
+    tables:
+      - name: raw_records
