@@ -14,6 +14,8 @@ prefect-gcp = {extras = ["cloud-storage"], version = "^0.3.0"}
 kaggle = "^1.5.13"
 pandas = "^1.5.3"
 pandas-gbq = "^0.19.1"
+dbt-core = "^1.4.5"
+dbt-bigquery = "^1.4.3"
 
 [tool.poetry.group.dev.dependencies]
 notebook = "^6.5.3"
