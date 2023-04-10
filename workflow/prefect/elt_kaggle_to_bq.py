@@ -9,7 +9,7 @@ from prefect.blocks.system import Secret
 from prefect_gcp import GcpCredentials
 
 
-@task(log_prints=True)
+@flow(log_prints=True)
 def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
     """
     takes a file path and uploads the file to GCP BigQuery
@@ -46,6 +46,7 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
 
+@task()
 def get_kaggle_client() -> KaggleApi:
     """
     returns an authenticated Kaggle client
@@ -58,6 +59,15 @@ def get_kaggle_client() -> KaggleApi:
 
 
 @task(retries=3)
+def download_dataset(
+    client: KaggleApi, dataset_id: str, file_path: Path, force=False
+) -> None:
+    client.dataset_download_file(
+        dataset_id, file_name=file_path.name, path=file_path.parent, force=force
+    )
+
+
+@flow()
 def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
     """
     downloads the dataset file for the specified month from Kaggle into local path
@@ -65,9 +75,8 @@ def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -
     """
     file_path = f"mta_17{int(month):02d}.csv"
 
-    get_kaggle_client().dataset_download_file(
-        kaggle_dataset_id, file_name=file_path, path=output_dir, force=False
-    )
+    client = get_kaggle_client()
+    download_dataset(client, kaggle_dataset_id, output_dir / file_path)
 
     # file is downloaded in .zip format, hence the '.zip' suffix
     # afaik, Kaggle API doesn't allow to get the file name
