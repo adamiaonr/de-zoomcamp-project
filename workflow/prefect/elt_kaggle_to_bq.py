@@ -8,6 +8,8 @@ from prefect import flow, task
 from prefect.blocks.system import Secret
 from prefect_gcp import GcpCredentials
 
+from nyc_bus.transform import fix_scheduled_arrival_time
+
 
 @flow(log_prints=True)
 def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
@@ -20,7 +22,6 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
     gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
     bq_table_name = os.getenv("GCP_BQ_TABLE_NAME")
 
-    # apply a minimal transformation :
     # - some .csv rows are split into 18 columns instead of 17
     # - this is due an occasional comma in the value of the 'NextStopPointName' column
     # - typical pattern : "<stop name> (non-public,for GEO)"
@@ -34,8 +35,10 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
             chunksize=chunksize,
         )
     ):
-        # minor transformation : remove '.' from 'VehicleLocation.*' columns
-        chunk.columns = [c.replace('.', '') for c in chunk.columns]
+        # apply transformations
+        chunk = transform(chunk)
+
+        # send data to BQ
         chunk.to_gbq(
             destination_table=bq_table_name,
             project_id=gcp_project_id,
@@ -43,7 +46,23 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
             chunksize=chunksize,
             if_exists="append",
         )
+
         print(f"loaded {len(chunk)} rows to GCP BQ")
+
+
+@task()
+def transform(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    applies transformations to data:
+        1. remove '.' from 'VehicleLocation.*' columns
+        2. drop rows with null 'RecordedAtTime' and 'ScheduledArrivalTime' columns
+        3. fix 'ScheduledArrivalTime' column, which can have values > '23:59:50'
+    """
+    data.columns = [c.replace('.', '') for c in data.columns]
+    data = data[data[['RecordedAtTime', 'ScheduledArrivalTime']].notnull()]
+    data = fix_scheduled_arrival_time(data)
+
+    return data
 
 
 @task()
