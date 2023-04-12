@@ -32,7 +32,7 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
 
-@task(retries=3)
+@task(log_prints=True, retries=3)
 def send_to_bq(data: pd.DataFrame, table_name: str, chunksize: int) -> None:
     """
     sends data to google bigquery.
@@ -41,6 +41,10 @@ def send_to_bq(data: pd.DataFrame, table_name: str, chunksize: int) -> None:
     gcp_project_id = os.getenv("GCP_PROJECT_ID")
     gcp_credentials_block_name = os.getenv("PREFECT_GCP_CREDENTIALS_BLOCK")
     gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
+
+    print(f"{gcp_project_id}")
+    print(f"{gcp_credentials_block_name}")
+    print(f"{table_name}")
 
     data.to_gbq(
         destination_table=table_name,
@@ -137,7 +141,7 @@ def elt_main_flow(
     """
     given a list of months:
       1. downloads dataset files from Kaggle, one for each variable
-      2. loads each file to GCP BigQuery
+      2. uploads each file to GCP BigQuery
     """
     credentials = fetch_kaggle_credentials()
     set_kaggle_credentials(credentials)
