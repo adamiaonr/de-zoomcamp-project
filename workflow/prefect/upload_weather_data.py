@@ -26,7 +26,8 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
         )
     ):
         # send data to BQ
-        send_to_bq(chunk, file_path.stem, chunksize)
+        table_name = f"{os.getenv('GCP_BQ_TABLE_NAME')}.{file_path.stem}"
+        send_to_bq(chunk, table_name, chunksize)
 
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
