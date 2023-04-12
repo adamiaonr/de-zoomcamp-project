@@ -49,7 +49,9 @@ def transform(data: pd.DataFrame) -> pd.DataFrame:
         3. fix 'ScheduledArrivalTime' column, which can have values > '23:59:50'
     """
     data.columns = [c.replace('.', '') for c in data.columns]
-    data = data.dropna(subset=['RecordedAtTime', 'ScheduledArrivalTime'])
+    data = data.dropna(subset=['RecordedAtTime', 'ScheduledArrivalTime']).reset_index(
+        drop=True
+    )
     data = fix_scheduled_arrival_time(data)
 
     return data
