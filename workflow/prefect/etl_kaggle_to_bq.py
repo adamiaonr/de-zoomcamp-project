@@ -75,7 +75,7 @@ def send_to_bq(data: pd.DataFrame, chunksize: int) -> None:
     )
 
 
-@task()
+@flow(task_runner=SequentialTaskRunner())
 def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
     """
     downloads the dataset file for the specified month from Kaggle into local path
@@ -91,7 +91,7 @@ def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -
     return output_dir / f"{file_path}.zip"
 
 
-# @task()
+@task()
 def get_kaggle_client() -> KaggleApi:
     """
     returns an authenticated Kaggle client
@@ -103,7 +103,7 @@ def get_kaggle_client() -> KaggleApi:
     return client
 
 
-# @task(retries=3)
+@task(retries=3)
 def download_dataset(
     client: KaggleApi, dataset_id: str, file_path: Path, force=False
 ) -> None:
