@@ -12,7 +12,7 @@ from prefect_gcp import GcpCredentials
 from nyc_bus.transform import fix_scheduled_arrival_time
 
 
-@flow(log_prints=True)
+@flow(log_prints=True, task_runner=SequentialTaskRunner())
 def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
     """
     takes a file path, applies transformations and uploads
@@ -75,7 +75,7 @@ def send_to_bq(data: pd.DataFrame, chunksize: int) -> None:
     )
 
 
-@flow()
+@flow(task_runner=SequentialTaskRunner())
 def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
     """
     downloads the dataset file for the specified month from Kaggle into local path
