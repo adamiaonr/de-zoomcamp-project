@@ -26,7 +26,7 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
         )
     ):
         # send data to BQ
-        table_name = f"{os.getenv('GCP_BQ_TABLE_NAME')}.{file_path.stem}"
+        table_name = f"{os.getenv('GCP_BQ_DATASET_NAME')}.{file_path.stem}"
         send_to_bq(chunk, table_name, chunksize)
 
         print(f"loaded {len(chunk)} rows to GCP BQ")
@@ -43,7 +43,6 @@ def send_to_bq(data: pd.DataFrame, table_name: str, chunksize: int) -> None:
     gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
 
     print(f"{gcp_project_id}")
-    print(f"{gcp_credentials_block_name}")
     print(f"{table_name}")
 
     data.to_gbq(
