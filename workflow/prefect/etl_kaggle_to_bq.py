@@ -12,16 +12,12 @@ from nyc_bus.transform import fix_scheduled_arrival_time
 
 
 @flow(log_prints=True)
-def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
+def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
     """
-    takes a file path and uploads the file to GCP BigQuery
-    file is uploaded in chunks
+    takes a file path, applies transformations and uploads
+    transformed data to google bigquery.
+    file is uploaded in chunks.
     """
-    gcp_project_id = os.getenv("GCP_PROJECT_ID")
-    gcp_credentials_block_name = os.getenv("PREFECT_GCP_CREDENTIALS_BLOCK")
-    gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
-    bq_table_name = os.getenv("GCP_BQ_TABLE_NAME")
-
     # - some .csv rows are split into 18 columns instead of 17
     # - this is due an occasional comma in the value of the 'NextStopPointName' column
     # - typical pattern : "<stop name> (non-public,for GEO)"
@@ -37,15 +33,8 @@ def upload_to_bq(file_path: Path, chunksize: int = 100000) -> None:
     ):
         # apply transformations
         chunk = transform(chunk)
-
         # send data to BQ
-        chunk.to_gbq(
-            destination_table=bq_table_name,
-            project_id=gcp_project_id,
-            credentials=gcp_credentials_block.get_credentials_from_service_account(),
-            chunksize=chunksize,
-            if_exists="append",
-        )
+        send_to_bq(chunk, chunksize)
 
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
@@ -63,6 +52,42 @@ def transform(data: pd.DataFrame) -> pd.DataFrame:
     data = fix_scheduled_arrival_time(data)
 
     return data
+
+
+@task(retries=3)
+def send_to_bq(data: pd.DataFrame, chunksize: int) -> None:
+    """
+    sends data to google bigquery.
+    extracts configs from environment.
+    """
+    gcp_project_id = os.getenv("GCP_PROJECT_ID")
+    gcp_credentials_block_name = os.getenv("PREFECT_GCP_CREDENTIALS_BLOCK")
+    gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
+    bq_table_name = os.getenv("GCP_BQ_TABLE_NAME")
+
+    data.to_gbq(
+        destination_table=bq_table_name,
+        project_id=gcp_project_id,
+        credentials=gcp_credentials_block.get_credentials_from_service_account(),
+        chunksize=chunksize,
+        if_exists="append",
+    )
+
+
+@flow()
+def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
+    """
+    downloads the dataset file for the specified month from Kaggle into local path
+    returns path of saved file
+    """
+    file_path = f"mta_17{int(month):02d}.csv"
+
+    client = get_kaggle_client()
+    download_dataset(client, kaggle_dataset_id, output_dir / file_path)
+
+    # file is downloaded in .zip format, hence the '.zip' suffix
+    # afaik, Kaggle API doesn't allow to get the file name
+    return output_dir / f"{file_path}.zip"
 
 
 @task()
@@ -84,22 +109,6 @@ def download_dataset(
     client.dataset_download_file(
         dataset_id, file_name=file_path.name, path=file_path.parent, force=force
     )
-
-
-@flow()
-def download_from_kaggle(month: int, output_dir: Path, kaggle_dataset_id: str) -> Path:
-    """
-    downloads the dataset file for the specified month from Kaggle into local path
-    returns path of saved file
-    """
-    file_path = f"mta_17{int(month):02d}.csv"
-
-    client = get_kaggle_client()
-    download_dataset(client, kaggle_dataset_id, output_dir / file_path)
-
-    # file is downloaded in .zip format, hence the '.zip' suffix
-    # afaik, Kaggle API doesn't allow to get the file name
-    return output_dir / f"{file_path}.zip"
 
 
 @task()
@@ -142,7 +151,7 @@ def fetch_kaggle_credentials() -> dict:
 
 
 @flow(log_prints=True)
-def elt_main_flow(
+def etl_main_flow(
     months: list[int],
     kaggle_dataset_id: str = "stoney71/new-york-city-transport-statistics",
 ) -> None:
@@ -158,8 +167,8 @@ def elt_main_flow(
 
     for month in months:
         file_path = download_from_kaggle(month, output_dir, kaggle_dataset_id)
-        upload_to_bq(file_path)
+        transform_and_upload(file_path)
 
 
 if __name__ == "__main__":
-    elt_main_flow(months=[6])
+    etl_main_flow(months=[6])
