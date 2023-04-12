@@ -6,6 +6,7 @@ import pandas as pd
 from kaggle.api.kaggle_api_extended import KaggleApi  # pylint: disable-msg=E0611
 from prefect import flow, task
 from prefect.blocks.system import Secret
+from prefect.task_runners import SequentialTaskRunner
 from prefect_gcp import GcpCredentials
 
 from nyc_bus.transform import fix_scheduled_arrival_time
@@ -150,7 +151,7 @@ def fetch_kaggle_credentials() -> dict:
     return kaggle_credentials
 
 
-@flow(log_prints=True)
+@flow(log_prints=True, task_runner=SequentialTaskRunner())
 def etl_main_flow(
     months: list[int],
     kaggle_dataset_id: str = "stoney71/new-york-city-transport-statistics",
