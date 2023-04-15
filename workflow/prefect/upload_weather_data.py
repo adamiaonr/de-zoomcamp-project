@@ -15,7 +15,9 @@ from utils import (
 
 
 @flow(log_prints=True, task_runner=SequentialTaskRunner())
-def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
+def transform_and_upload(
+    file_path: Path, cities: list[str], chunksize: int = 100000
+) -> None:
     """
     takes a file path and uploads data to google bigquery.
     file is uploaded in chunks.
@@ -33,7 +35,7 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
         table_name = (
             f"{os.getenv('GCP_BQ_DATASET_NAME')}.{file_path.name.split('.')[0]}"
         )
-        send_to_bigquery(chunk, table_name, chunksize)
+        send_to_bigquery(chunk[['datetime'] + cities], table_name, chunksize)
 
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
@@ -57,8 +59,13 @@ def download_from_kaggle(
 
 
 @flow(log_prints=True, task_runner=SequentialTaskRunner())
-def elt_main_flow(
-    variables: list[str],
+def elt_main_flow(  # pylint: disable-msg=W0102
+    variables: list[str] = [
+        'temperature',
+        'humidity',
+        'weather_description',
+    ],
+    cities: list[str] = ['New York'],
     kaggle_dataset_id: str = "selfishgene/historical-hourly-weather-data",
 ) -> None:
     """
@@ -73,7 +80,7 @@ def elt_main_flow(
 
     for variable in variables:
         file_path = download_from_kaggle(variable, output_dir, kaggle_dataset_id)
-        transform_and_upload(file_path)
+        transform_and_upload(file_path, cities)
 
 
 if __name__ == "__main__":
