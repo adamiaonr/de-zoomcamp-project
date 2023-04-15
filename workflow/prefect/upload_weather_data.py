@@ -13,13 +13,9 @@ from utils import (
     set_kaggle_credentials,
 )
 
-types = {'temperature': float, 'humidity': float, 'weather_description': str}
-
 
 @flow(log_prints=True, task_runner=SequentialTaskRunner())
-def transform_and_upload(
-    file_path: Path, cities: list[str], chunksize: int = 100000
-) -> None:
+def upload(file_path: Path, cities: list[str], chunksize: int = 100000) -> None:
     """
     takes a file path and uploads data to google bigquery.
     file is uploaded in chunks.
@@ -33,24 +29,15 @@ def transform_and_upload(
             chunksize=chunksize,
         )
     ):
-        # variable name
-        variable = file_path.name.split('.')[0]
         # send data to BQ
-        table_name = f"{os.getenv('GCP_BQ_DATASET_NAME')}.{variable}"
-
-        chunk = chunk[['datetime'] + cities].dropna().reset_index(drop=True)
-        chunk = chunk.astype(
-            {'datetime': str}
-            | {
-                column: types[variable]
-                for column in chunk.columns
-                if column != 'datetime'
-            }
+        table_name = (
+            f"{os.getenv('GCP_BQ_DATASET_NAME')}.{file_path.name.split('.')[0]}"
+        )
+        send_to_bigquery(
+            chunk[['datetime'] + cities].reset_index(drop=True), table_name, chunksize
         )
 
-        send_to_bigquery(chunk[['datetime'] + cities].dropna(), table_name, chunksize)
-
-        print(f"loaded {len(chunk)} rows to GCP BQ")
+        print(f"loaded {len(chunk)} rows to {table_name} in GCP BQ")
 
 
 @flow(task_runner=SequentialTaskRunner())
@@ -93,7 +80,7 @@ def elt_main_flow(  # pylint: disable-msg=W0102
 
     for variable in variables:
         file_path = download_from_kaggle(variable, output_dir, kaggle_dataset_id)
-        transform_and_upload(file_path, cities)
+        upload(file_path, cities)
 
 
 if __name__ == "__main__":

@@ -69,6 +69,9 @@ def send_to_bigquery(data: pd.DataFrame, table_name: str, chunksize: int) -> Non
     gcp_credentials_block_name = os.getenv("PREFECT_GCP_CREDENTIALS_BLOCK")
     gcp_credentials_block = GcpCredentials.load(gcp_credentials_block_name)
 
+    # ensure column names have no spaces in them
+    data.columns = [c.replace(' ', '') for c in data.columns]
+
     data.to_gbq(
         destination_table=table_name,
         project_id=gcp_project_id,
