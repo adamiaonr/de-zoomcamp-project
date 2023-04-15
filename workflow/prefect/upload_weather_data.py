@@ -13,6 +13,8 @@ from utils import (
     set_kaggle_credentials,
 )
 
+types = {'temperature': float, 'humidity': float, 'weather_description': str}
+
 
 @flow(log_prints=True, task_runner=SequentialTaskRunner())
 def transform_and_upload(
@@ -31,11 +33,22 @@ def transform_and_upload(
             chunksize=chunksize,
         )
     ):
+        # variable name
+        variable = file_path.name.split('.')[0]
         # send data to BQ
-        table_name = (
-            f"{os.getenv('GCP_BQ_DATASET_NAME')}.{file_path.name.split('.')[0]}"
+        table_name = f"{os.getenv('GCP_BQ_DATASET_NAME')}.{variable}"
+
+        chunk = chunk[['datetime'] + cities].dropna().reset_index(drop=True)
+        chunk = chunk.astype(
+            {'datetime': str}
+            | {
+                column: types[variable]
+                for column in chunk.columns
+                if column != 'datetime'
+            }
         )
-        send_to_bigquery(chunk[['datetime'] + cities], table_name, chunksize)
+
+        send_to_bigquery(chunk[['datetime'] + cities].dropna(), table_name, chunksize)
 
         print(f"loaded {len(chunk)} rows to GCP BQ")
 
