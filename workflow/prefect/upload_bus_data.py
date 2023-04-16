@@ -45,8 +45,6 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
         )
         send_to_bigquery(chunk, table_name, chunksize)
 
-        print(f"loaded {len(chunk)} rows to {table_name} in GCP BQ")
-
 
 @task()
 def transform(data: pd.DataFrame) -> pd.DataFrame:

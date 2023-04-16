@@ -37,8 +37,6 @@ def upload(file_path: Path, cities: list[str], chunksize: int = 100000) -> None:
             chunk[['datetime'] + cities].reset_index(drop=True), table_name, chunksize
         )
 
-        print(f"loaded {len(chunk)} rows to {table_name} in GCP BQ")
-
 
 @flow(task_runner=SequentialTaskRunner())
 def download_from_kaggle(

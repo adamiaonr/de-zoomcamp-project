@@ -80,6 +80,8 @@ def send_to_bigquery(data: pd.DataFrame, table_name: str, chunksize: int) -> Non
         if_exists="append",
     )
 
+    print(f"loaded {len(data)} rows to {table_name} in GCP BQ")
+
 
 @task()
 def create_local_dir(path: Path = Path("data")) -> Path:
