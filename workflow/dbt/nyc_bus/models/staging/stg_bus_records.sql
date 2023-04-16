@@ -1,10 +1,12 @@
 {{ config(materialized='view') }}
 
 select
-    -- timestamps (NY timezone)
+    -- id
+    {{ dbt_utils.generate_surrogate_key(['RecordedAtTime', 'PublishedLineName', 'DirectionRef', 'OriginName', 'DestinationName', 'VehicleRef']) }} as RecordId,
+    -- timestamps
     cast(RecordedAtTime as timestamp) as RecordedAtTime,
     cast(ExpectedArrivalTime as timestamp) as ExpectedArrivalTime,
-    ScheduledArrivalTime,
+    cast(ScheduledArrivalTime as timestamp) as ScheduledArrivalTime,
     -- bus line identifiers
     DirectionRef,
     PublishedLineName,
@@ -19,6 +21,7 @@ select
     NextStopPointName,
     -- status info
     ArrivalProximityText
-from {{source('staging', 'raw_records')}}
-order by RecordedAtTime
-limit 1000
+from {{ source('staging', 'bus_records') }}
+{% if var('is_test_run', default=true) %}
+    limit 100
+{% endif %}
