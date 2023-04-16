@@ -33,7 +33,7 @@ def upload(file_path: Path, chunksize: int = 100000) -> None:
         table_name = (
             f"{os.getenv('GCP_BQ_DATASET_NAME')}.{file_path.name.split('.')[0]}"
         )
-        send_to_bigquery(chunk.reset_index(drop=True), table_name, chunksize)
+        send_to_bigquery(chunk, table_name, chunksize)
 
 
 @flow(task_runner=SequentialTaskRunner())
