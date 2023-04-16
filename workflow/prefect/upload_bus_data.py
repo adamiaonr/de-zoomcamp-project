@@ -38,6 +38,7 @@ def transform_and_upload(file_path: Path, chunksize: int = 100000) -> None:
     ):
         # apply transformations
         chunk = transform(chunk)
+
         # send data to BQ
         table_name = (
             f'{os.getenv("GCP_BQ_DATASET_NAME")}.'
@@ -59,6 +60,11 @@ def transform(data: pd.DataFrame) -> pd.DataFrame:
         drop=True
     )
     data = fix_scheduled_arrival_time(data)
+
+    # convert datetime columns to string
+    data[['RecordedAtTime', 'ScheduledArrivalTime']] = data[
+        ['RecordedAtTime', 'ScheduledArrivalTime']
+    ].apply(lambda c: c.dt.strftime('%Y-%m-%d HH:MM:SS'))
 
     return data
 
