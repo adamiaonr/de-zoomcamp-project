@@ -64,7 +64,7 @@ def transform(data: pd.DataFrame) -> pd.DataFrame:
     # convert datetime columns to string
     data[['RecordedAtTime', 'ScheduledArrivalTime']] = data[
         ['RecordedAtTime', 'ScheduledArrivalTime']
-    ].apply(lambda c: c.dt.strftime('%Y-%m-%d HH:MM:SS'))
+    ].apply(lambda c: c.dt.strftime('%Y-%m-%d %H:%M:%S'))
 
     return data
 
