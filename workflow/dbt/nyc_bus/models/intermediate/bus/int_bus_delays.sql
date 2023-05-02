@@ -4,11 +4,16 @@
     cluster_by = [ "BusLineId", "BusStopId", "DayOfWeek" ]
 ) }}
 
+with weather_nyc as (
+    select *
+    from {{ ref('int_weather_nyc') }}
+)
+
 select
     -- id
     RecordId,
     -- timestamps
-    RecordDateTime as RecordDateTime,
+    bus_records.RecordDateTime as RecordDateTime,
     ExpectedArrivalDateTime,
     ScheduledArrivalDateTime,
     -- other date & time info
@@ -21,8 +26,14 @@ select
     -- geographical & location info
     BusStopId,
     -- bus delay
-    timestamp_diff(ExpectedArrivalDateTime, ScheduledArrivalDateTime, second) as DelaySeconds
-from {{ ref('stg_bus_records') }}
+    timestamp_diff(ExpectedArrivalDateTime, ScheduledArrivalDateTime, second) as DelaySeconds,
+    -- weather info
+    Weather,
+    Humidity,
+    Temperature
+from {{ ref('stg_bus_records') }} bus_records
+inner join weather_nyc
+    on weather_nyc.RecordDateTime = bus_records.RecordDateHour
 where
     ExpectedArrivalDateTime is not null
     and ScheduledArrivalDateTime is not null
@@ -30,5 +41,5 @@ where
     and ArrivalProximityText = 'at stop'
 {% if is_incremental() %}
     -- this filter will only be applied on an incremental run
-    and RecordDateTime >= (select max(RecordDateTime) from {{ this }})
+    and bus_records.RecordDateTime >= (select max(RecordDateTime) from {{ this }})
 {% endif %}
