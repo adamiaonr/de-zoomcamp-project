@@ -13,3 +13,14 @@ metrics:
       - BusStopId
       - DayOfWeek
       - DayOfWeekName
+
+  - name: average_delay_per_bus_line_weather
+    label: Average delay per bus line & weather type
+    model: ref('int_bus_delays')
+    calculation_method: average
+    expression: DelaySeconds
+    timestamp: RecordDate
+    time_grains: [month]
+    dimensions:
+      - BusLineId
+      - Weather
