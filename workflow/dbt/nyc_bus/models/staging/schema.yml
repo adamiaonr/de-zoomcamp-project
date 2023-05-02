@@ -1,4 +1,5 @@
 version: 2
+
 sources:
   - name: staging
     database: psychic-medley-376114
@@ -8,3 +9,29 @@ sources:
       - name: temperature
       - name: humidity
       - name: weather_description
+
+models:
+  - name: stg_bus_records
+    description: >
+      bus records in NYC, including scheduled, expected arrival times
+      and vehicle locations.
+      adds unique ids for records and bus lines.
+      casts gps coordinates into location objects.
+      casts timestamp strings into timestamp objects.
+
+  - name: stg_humidity
+    description: >
+      hourly humidity values on multiple cities around the world, including NYC.
+      pivots the base table so that the cities show in a single column.
+
+  - name: stg_temperature
+    description: >
+      hourly temperature values on multiple cities around the world, including NYC.
+      pivots the base table so that the cities show in a single column.
+      temperature is converted from Kelvin to Celsius.
+
+  - name: stg_weather_description
+    description: >
+      hourly weather description text on multiple cities around the world, including NYC.
+      text descriptions examples: 'few clouds', 'sky is clear', 'mist'.
+      pivots the base table so that the cities show in a single column.
