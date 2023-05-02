@@ -18,8 +18,8 @@ select
     cast(datetime as timestamp) as RecordDateTime,
     -- city
     City,
-    -- value
-    Temperature
+    -- value (convert from kelvin to celsius)
+    (Temperature - 273.15) as Temperature
 from unpivoted
 
 {% if var('is_test_run', default=true) %}
