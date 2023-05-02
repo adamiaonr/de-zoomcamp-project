@@ -11,53 +11,35 @@ def fix_scheduled_arrival_time(
     # ensure 'RecordedAtTime' is in pd.datetime format
     convert_to_datetime(data, ['RecordedAtTime'])
 
-    # extract hour component from 'RecordedAtTime' and 'ScheduledArrivalTime'
-    data['RecordedAtTimeHour'] = (data['RecordedAtTime'].dt.hour).astype(int)
-    data['ScheduledArrivalTimeHour'] = (
-        data['ScheduledArrivalTime'].apply(lambda x: x.split(':')[0]).astype(int)
-    )
-
-    # calculate 2 diff types
-    data['DiffOriginal'] = (
-        data['RecordedAtTimeHour'] - data['ScheduledArrivalTimeHour']
-    ).abs()
-    data['DiffMod'] = (
-        data['RecordedAtTimeHour'] - (data['ScheduledArrivalTimeHour'] % 24)
-    ).abs()
-
-    # add 'RecordedAtTime' date to 'ScheduledArrivalTime'
+    # add 'ScheduledArrivalTime' to start of day of 'RecordedAtTime'
     data['ScheduledArrivalTime'] = data[
         'RecordedAtTime'
-    ].dt.normalize() + pd.to_timedelta(data['ScheduledArrivalTime'])
+    ].dt.normalize() + pd.to_timedelta(data['ScheduledArrivalTime'].astype(str))
 
-    # special case 1 :
-    #   - scheduled arrival time hour < 24, diff. original >= tolerance
-    #   - e.g., '2017-06-15 19:15:00' vs. '23:01:01'
-    #   - action : subtract 1 day from 'ScheduledArrivalTime'
-    mask = (data['ScheduledArrivalTimeHour'] < 24) & (data['DiffOriginal'] >= tolerance)
+    # calculate time delta, in hours, between 'scheduled' and 'recorded' time
+    time_delta = (
+        data['RecordedAtTime'] - data['ScheduledArrivalTime']
+    ).dt.total_seconds() / 3600.0
+
+    # case 1 :
+    #   - time delta > 12 hr
+    #   - e.g., { recorded : 2023-04-01 23:00:00, scheduled : 2023-04-01 01:00:00 }
+    #   - action : add 1 day to scheduled
+    mask = time_delta > tolerance
+    data.loc[mask, 'ScheduledArrivalTime'] = data[mask][
+        'ScheduledArrivalTime'
+    ] + pd.to_timedelta(1, unit='d')
+
+    # case 2 :
+    #   - time delta < -12 hr
+    #   - e.g., { recorded : 2023-04-01 01:00:00, scheduled : 2023-04-01 23:00:00 }
+    #   - action : subtract 1 day from scheduled
+    mask = time_delta < -tolerance
     data.loc[mask, 'ScheduledArrivalTime'] = data[mask][
         'ScheduledArrivalTime'
     ] - pd.to_timedelta(1, unit='d')
 
-    # special case 2 :
-    #   - scheduled arrival time hour >= 24, diff. mod < tolerance
-    #   - e.g., '2017-06-16 01:15:00' vs. '25:01:01'
-    #   - action :
-    #       - since 'ScheduledArrivalTimeHour' >= 24, it exceeds 'RecordedAtTime' by 1 day
-    #       - as such, subtract 1 day from 'ScheduledArrivalTime'
-    mask = (data['ScheduledArrivalTimeHour'] >= 24) & (data['DiffMod'] < tolerance)
-    data.loc[mask, 'ScheduledArrivalTime'] = data[mask][
-        'ScheduledArrivalTime'
-    ] - pd.to_timedelta(1, unit='d')
-
-    # convert 'ScheduledArrivalTime' to datetime
-    data['ScheduledArrivalTime'] = pd.to_datetime(data['ScheduledArrivalTime'])
-
-    # remove extra columns
-    data = data.drop(
-        ['RecordedAtTimeHour', 'ScheduledArrivalTimeHour', 'DiffOriginal', 'DiffMod'],
-        axis=1,
-    )
+    # other cases, time delta within tolerance : leave as it is
 
     return data
 
