@@ -22,3 +22,15 @@ variable "BQ_DATASET" {
   type = string
   default = "nyc_bus_dataset"
 }
+
+variable "BQ_DATASET_DBT_DEV" {
+  description = "BigQuery Dataset used for dbt development"
+  type = string
+  default = "nyc_bus_dbt_dev"
+}
+
+variable "BQ_DATASET_DBT_PROD" {
+  description = "BigQuery Dataset used for dbt production"
+  type = string
+  default = "nyc_bus_dbt_prod"
+}

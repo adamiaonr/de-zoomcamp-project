@@ -48,3 +48,20 @@ resource "google_bigquery_dataset" "dataset" {
   location   = var.region
   delete_contents_on_destroy = true
 }
+
+# DBT datasets in BQ
+# development
+resource "google_bigquery_dataset" "dataset_dbt_dev" {
+  dataset_id = var.BQ_DATASET_DBT_DEV
+  project    = var.project
+  location   = var.region
+  delete_contents_on_destroy = true
+}
+
+# production
+resource "google_bigquery_dataset" "dataset_dbt_prod" {
+  dataset_id = var.BQ_DATASET_DBT_PROD
+  project    = var.project
+  location   = var.region
+  delete_contents_on_destroy = true
+}
