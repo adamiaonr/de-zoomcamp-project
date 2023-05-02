@@ -34,4 +34,8 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   nyc_bus:
     staging:
-      +materialized: view
+      materialized: view
+    intermediate:
+      materialized: table
+    marts:
+      materialized: table
