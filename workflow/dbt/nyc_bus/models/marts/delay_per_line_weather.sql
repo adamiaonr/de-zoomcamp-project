@@ -29,7 +29,7 @@ select
     -- weather info
     Weather,
     -- average delay
-    average_delay_per_bus_line_weather as AverageDelay,
+    average_delay_per_bus_line_weather as AverageDelay
 from line_delay
 inner join bus_lines
     on bus_lines.BusLineId = line_delay.BusLineId
