@@ -7,27 +7,19 @@ select
     cast(RecordedAtTime as timestamp) as RecordDateTime,
     cast(ExpectedArrivalTime as timestamp) as ExpectedArrivalDateTime,
     cast(ScheduledArrivalTime as timestamp) as ScheduledArrivalDateTime,
-    -- extra date & time info
-    date_trunc(cast(RecordedAtTime as timestamp), hour) as RecordDateHour,
-    cast(cast(RecordedAtTime as timestamp) as date) as RecordDate,
-    -- bus line id
+    -- bus line id & info
     {{ dbt_utils.generate_surrogate_key(['PublishedLineName', 'DirectionRef', 'OriginName', 'DestinationName']) }} as BusLineId,
-    -- bus line info
     PublishedLineName as BusLineName,
     DirectionRef as BusLineDirection,
     OriginName as BusLineOrigin,
     DestinationName as BusLineDestination,
-    -- vehicle info
-    VehicleRef as VehicleId,
-    -- geographical & location info
-    st_geogpoint(OriginLong, OriginLat) as OriginLocation,
-    st_geogpoint(DestinationLong, DestinationLat) as DestinationLocation,
+    -- geographical location of vehicle
     st_geogpoint(VehicleLocationLongitude, VehicleLocationLatitude) as VehicleLocation,
-    NextStopPointName,
-    -- bus stop id
+    -- bus stop info
     {{ dbt_utils.generate_surrogate_key(['PublishedLineName', 'DirectionRef', 'OriginName', 'DestinationName', 'NextStopPointName']) }} as BusStopId,
-    -- status info
-    ArrivalProximityText
+    NextStopPointName as BusStopName,
+    -- bus status (e.g., 'at stop', 'approaching')
+    ArrivalProximityText as BusStatus
 from {{ source('staging', 'bus_records') }}
 {% if var('is_test_run', default=true) %}
     limit 100
