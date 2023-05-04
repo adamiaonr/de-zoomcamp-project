@@ -50,7 +50,7 @@ I've used two data sources in this project:
 
 I've used a ETLT pipeline that I partially orchestrate via Prefect.
 
-![Screenshot 2023-05-03 at 23 43 00](https://user-images.githubusercontent.com/5468601/236068468-d62d0aa6-6fa7-464c-8073-addcb3ec73f8.png)
+![Screenshot 2023-05-04 at 18 59 30](https://user-images.githubusercontent.com/5468601/236289636-846e72f2-4ee5-421b-b0d7-9145fd078f8b.png)
 
 * **1:** Use Prefect Cloud to (a) keep necessary blocks & deployments; and (b) trigger flows via the web UI. **Note:** the flows are ran in a local agent.
 * **2, 3 and 4:** Two of the Prefect flows are used to fetch data from Kaggle, pre-transform it, and ingest it directly into Google BigQuery.
