@@ -7,11 +7,6 @@ models:
       it includes a bus stop location, the average of geographic coordinates when the vehicle
       is detected to be 'at the stop'.
 
-  - name: int_bus_lines
-    description: >
-      table that lists info about unique bus lines,
-      i.e. unique {BusLineName, BusLineDirection, BusLineOrigin, BusLineDestination} combinations.
-
   - name: int_weather_nyc
     description: >
       table that lists temperature (in Celsius), humidity and a textual weather description
@@ -20,4 +15,3 @@ models:
   - name: int_bus_delays
     description: >
       table with the delay, in seconds, when a bus is at a stop.
-      includes weather information, registered on the hour that the bus delay has been recorded.

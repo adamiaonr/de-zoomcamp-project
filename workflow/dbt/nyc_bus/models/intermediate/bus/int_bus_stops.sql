@@ -5,8 +5,8 @@
 select
     BusStopId,
     BusLineId,
-    NextStopPointName as BusStopName,
+    BusStopName,
     st_centroid_agg(VehicleLocation) as BusStopLocation
 from {{ ref('stg_bus_records') }}
-where ArrivalProximityText = 'at stop'
-group by BusStopId, BusLineId, NextStopPointName
+where BusStatus = 'at stop'
+group by BusStopId, BusLineId, BusStopName
