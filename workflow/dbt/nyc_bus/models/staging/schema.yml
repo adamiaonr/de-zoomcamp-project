@@ -13,8 +13,7 @@ sources:
 models:
   - name: stg_bus_records
     description: >
-      bus records in NYC, including scheduled, expected arrival times
-      and vehicle locations.
+      bus records in NYC, including scheduled, expected arrival times and vehicle locations.
       adds unique ids for records and bus lines.
       casts gps coordinates into location objects.
       casts timestamp strings into timestamp objects.
