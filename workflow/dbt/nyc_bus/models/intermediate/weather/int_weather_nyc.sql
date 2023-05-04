@@ -36,6 +36,6 @@ select
     Weather
 from temperature
 inner join humidity
-on temperature.RecordDateTime = humidity.RecordDateTime
+    on temperature.RecordDateTime = humidity.RecordDateTime
 inner join weather_description
-on humidity.RecordDateTime = weather_description.RecordDateTime
+    on humidity.RecordDateTime = weather_description.RecordDateTime
