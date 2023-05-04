@@ -16,8 +16,8 @@ def trigger_dbt_flow(target: str = 'dev'):
             f"dbt -t {target} build dbt_metrics_default_calendar",
             f"dbt build -t {target} --var 'is_test_run: false'",
         ],
-        project_dir="~/de-zoomcamp-project/workflow/dbt/nyc_bus/",
-        profiles_dir="~/de-zoomcamp-project/workflow/dbt/nyc_bus/",
+        project_dir="./workflow/dbt/nyc_bus/",
+        profiles_dir="./workflow/dbt/nyc_bus/",
         dbt_cli_profile=dbt_cli_profile,
     ) as dbt_operation:
         dbt_process = dbt_operation.trigger()
