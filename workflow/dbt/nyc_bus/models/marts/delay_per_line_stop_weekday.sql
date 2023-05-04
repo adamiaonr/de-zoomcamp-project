@@ -4,41 +4,44 @@
     cluster_by = [ "BusLineId", "BusStopId", "DayOfWeek" ]
 ) }}
 
-with bus_lines as (
-    select *
-    from {{ ref('int_bus_lines') }}
-),
-
-bus_stops as (
-    select *
-    from {{ ref('int_bus_stops') }}
-),
-
-line_delay as (
+with line_delay as (
     select *
     from {{ metrics.calculate(
         metric('average_delay_per_bus_line_stop_per_weekday'),
         grain='month',
-        dimensions=['BusLineId', 'BusStopId', 'DayOfWeek', 'DayOfWeekName']
+        dimensions=['BusLineId', 'BusStopId', 'DayOfWeek']
     ) }}
+),
+
+bus_stops as (
+    select BusStopId, BusStopLocation
+    from {{ ref('int_bus_stops') }}
+),
+
+bus_lines as (
+    select BusLineId, BusLineName, BusLineDirection
+    from {{ ref('bus_delays') }}
+    group by BusLineId, BusLineName, BusLineDirection
 )
 
 select
+    -- month info
     date_month as DateMonth,
-    format_date('%B', date_month) as Month,
+    {{ dbt_date.month_name('date_month') }} as MonthName,
+    -- day of week info
+    DayOfWeek,
+    {{ get_day_of_week_from_number('DayOfWeek') }} as DayOfWeekName,
+    -- bus line info
     line_delay.BusLineId as BusLineId,
     BusLineName,
     BusLineDirection,
-    BusLineOrigin,
-    BusLineDestination,
+    -- bus stop info
     line_delay.BusStopId as BusStopId,
-    BusStopName,
     BusStopLocation,
-    DayOfWeek,
-    DayOfWeekName,
-    average_delay_per_bus_line_stop_per_weekday as AverageDelay,
+    -- average delay
+    average_delay_per_bus_line_stop_per_weekday as AverageDelay
 from line_delay
-inner join bus_lines
-    on bus_lines.BusLineId = line_delay.BusLineId
 inner join bus_stops
     on bus_stops.BusStopId = line_delay.BusStopId
+inner join bus_lines
+    on bus_lines.BusLineId = line_delay.BusLineId
