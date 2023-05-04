@@ -14,16 +14,21 @@ with line_delay as (
 ),
 
 bus_lines as (
-    select *
-    from {{ ref('int_bus_lines') }}
+    select BusLineId, BusLineName, BusLineDirection
+    from {{ ref('bus_delays') }}
+    group by BusLineId, BusLineName, BusLineDirection
 )
 
 select
+    -- month info
     date_month as DateMonth,
-    format_date('%B', date_month) as Month,
+    {{ dbt_date.month_name('date_month') }} as MonthName,
+    -- bus line info
     line_delay.BusLineId as BusLineId,
     BusLineName,
+    -- weather info
     Weather,
+    -- average delay
     average_delay_per_bus_line_weather as AverageDelay,
 from line_delay
 inner join bus_lines
