@@ -50,7 +50,7 @@ I've used two data sources in this project:
 I've used a ETLT pipeline that I partially orchestrate via Prefect.
 As of now, the final transformations are manually performed by running `dbt` locally.
 
-![Screenshot 2023-05-03 at 23 43 00](https://user-images.githubusercontent.com/5468601/236068468-d62d0aa6-6fa7-464c-8073-addcb3ec73f8.png)
+![Screenshot 2023-05-04 at 18 59 30](https://user-images.githubusercontent.com/5468601/236289636-846e72f2-4ee5-421b-b0d7-9145fd078f8b.png)
 
 ### Why the two 'Ts'? The issue with the `ScheduledArrivalTimeColumn` column...
 
