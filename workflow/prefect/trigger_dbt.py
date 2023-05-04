@@ -7,8 +7,6 @@ from prefect_dbt.cli import DbtCliProfile, DbtCoreOperation
 @flow(log_prints=True)
 def trigger_dbt_flow(target: str = 'dev'):
 
-    print(os.path.dirname(os.path.realpath(__file__)))
-
     dbt_cli_profile_block = os.getenv("DBT_CLI_PROFILE_BLOCK")
     dbt_cli_profile = DbtCliProfile.load(dbt_cli_profile_block)
 
