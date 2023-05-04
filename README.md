@@ -34,6 +34,7 @@ I've used two data sources in this project:
 │   ├── dbt/
 │   │   └── nyc_bus/                # dbt models used for data warehouse transformations
 │   ├── prefect/
+│   │   ├── trigger_dbt.py          # triggers dbt transformations
 │   │   ├── upload_bus_data.py      # uploads bus data from Kaggle to GBQ
 │   │   ├── upload_weather_data.py  # uploads weather data from Kaggle to GBQ
 │   │   └── utils.py                # common functions used by prefect flows
@@ -48,9 +49,13 @@ I've used two data sources in this project:
 ### Flow
 
 I've used a ETLT pipeline that I partially orchestrate via Prefect.
-As of now, the final transformations are manually performed by running `dbt` locally.
 
 ![Screenshot 2023-05-03 at 23 43 00](https://user-images.githubusercontent.com/5468601/236068468-d62d0aa6-6fa7-464c-8073-addcb3ec73f8.png)
+
+* **1:** Use Prefect Cloud to (a) keep necessary blocks & deployments; and (b) trigger flows via the web UI. **Note:** the flows are ran in a local agent.
+* **2, 3 and 4:** Two of the Prefect flows are used to fetch data from Kaggle, pre-transform it, and ingest it directly into Google BigQuery.
+* **5:** An additional Prefect flow triggers all necessary `dbt` steps, i.e. installation of packages and transformations.
+* **6:** A dashboard built in Google Looker / Data Studio presents the data
 
 ### Why the two 'Ts'? The issue with the `ScheduledArrivalTimeColumn` column...
 
@@ -72,13 +77,27 @@ Try it out [here](https://lookerstudio.google.com/reporting/f500306b-9ba7-42d6-b
 
 ## Final production tables
 
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| RecordId | STRING | Unique identifier for the record |
+| RecordDateTime | TIMESTAMP | Date and time when the record was created |
+| DayOfWeek | INTEGER | Day of the week (1-7) corresponding to the date of the record |
+| BusLineId | STRING | Identifier for the bus line |
+| BusLineName | STRING | Name of the bus line |
+| BusLineDirection | INTEGER | Direction of the bus line (0 or 1) |
+| BusLineOrigin | STRING | Origin of the bus line |
+| BusLineDestination | STRING | Destination of the bus line |
+| BusStopId | STRING | Identifier for the bus stop |
+| BusStopName | STRING | Name of the bus stop |
+| BusStopLocation | GEOGRAPHY | Location (latitude and longitude) of the bus stop |
+| DelaySeconds | INTEGER | Delay time in seconds for the bus record, registered at time of arrival at the stop |
+| Weather | STRING | Description of the weather at the time of the record |
+| Humidity | FLOAT | Humidity percentage at the time of the record |
+| Temperature | FLOAT | Temperature in Celsius at the time of the record |
+
+### Comments
+
 ## Usage
-
-## Details
-
-### Why do I use E(T)LT? The issue with the `ScheduledArrivalTimeColumn` column
-
-### Model lineage
 
 ## Open questions & future work
 
