@@ -113,7 +113,7 @@ Try it out [here](https://lookerstudio.google.com/reporting/f500306b-9ba7-42d6-b
 
 ## Model lineage
 
-
+![Screenshot 2023-05-04 at 19 19 34](https://user-images.githubusercontent.com/5468601/236296520-7e64fb9b-fbd9-4109-a118-328b3a74f418.png)
 
 ## Usage
 
