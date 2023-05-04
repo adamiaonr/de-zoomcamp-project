@@ -16,7 +16,7 @@ select
     BusLineName,
     BusLineDirection,
     BusLineOrigin,
-    BusLineDestination
+    BusLineDestination,
     -- bus stop Id
     BusStopId,
     -- bus delay
