@@ -57,12 +57,28 @@ I've used a ETLT pipeline that I partially orchestrate via Prefect.
 * **5:** An additional Prefect flow triggers all necessary `dbt` steps, i.e. installation of packages and transformations.
 * **6:** A dashboard built in Google Looker / Data Studio presents the data
 
-### Why the two 'Ts'? The issue with the `ScheduledArrivalTimeColumn` column...
+### Data transformations and delay computation
 
-The `ScheduledArrivalTime` column sometimes shows time values such as `24:05:00`, without a date, which is quite annoying...
-In order to pass it to a format like `2022-08-01 00:05:00` we apply the function [`fix_scheduled_arrival_time()`](https://github.com/adamiaonr/de-zoomcamp-project/blob/master/nyc_bus/transform.py#L4).
+In the course, we typically talked about an ETL/ELT dichotomy.
+As such, you may have noticed an extra 'T' in my pipeline description: E**T**LT.
+The need for the extra transformation step is related with the computation of bus delays.
 
-Unfortunately, I did not find a nice way to handle this with `dbt` and macros, so I ended up just transforming the data before the **L**oad step.
+The original dataset is composed by 3 date & time columns:
+
+| Field Name | Description |
+|------------|-------------|
+| | |
+
+We calculate the bus delay via the difference between `RecordedAtTime` and the `ScheduledArrivalTime` columns when the bus is known to be at a stop.
+This is done in a transformation step on the data warehouse (see [this](https://github.com/adamiaonr/de-zoomcamp-project/blob/master/workflow/dbt/nyc_bus/models/intermediate/bus/int_bus_delays.sql) `dbt` model).
+
+Unfortunately, the `ScheduledArrivalTime` column sometimes shows time values such as `27:15:00`, without a date.
+In order to parse this to a format like `2022-08-01 03:15:00`, we use the function [`fix_scheduled_arrival_time()`](https://github.com/adamiaonr/de-zoomcamp-project/blob/master/nyc_bus/transform.py#L4).
+This function uses the date of `RecordedAtTime` as the base date, and assumes that the difference between the `ScheduledArrivalTime` and `RecordDateTime` is within an interval of [-`H`, `H`] hours.
+By default, we assume `H` = 12 hours.
+
+I did not find a nice way to handle this with `dbt` and macros.
+As such, I apply an initial transformation step, just before the load step to Google BigQuery.
 
 ### Dashboard
 
