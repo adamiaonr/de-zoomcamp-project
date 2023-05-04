@@ -189,3 +189,6 @@ $ prefect agent start -q "main"
 Your local agent should start downloading data from Kaggle and upload it to GBQ.
 
 9. Finally, you can also use the Prefect Cloud UI to run the `dbt` trigger Prefect flow, in order to perform the final transformations on GBQ.
+
+At this point, you can take a look at the data in GBQ.
+Alternatively, you can head up to [Google Looker Studio](https://lookerstudio.google.com/), connect data sources to your GBQ tables and create a dashboard.
