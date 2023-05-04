@@ -17,8 +17,8 @@ def trigger_dbt_flow(target: str = 'dev'):
             f"dbt build -t {target} --var 'is_test_run: false'",
         ],
         project_dir="~/workbench/de-zoomcamp-project/workflow/dbt/nyc_bus/",
-        profiles_dir="~/workbench/de-zoomcamp-project/workflow/dbt/nyc_bus/",
         dbt_cli_profile=dbt_cli_profile,
+        overwrite_profiles=True,
     ) as dbt_operation:
         dbt_process = dbt_operation.trigger()
         dbt_process.wait_for_completion()
