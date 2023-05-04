@@ -5,6 +5,8 @@ Final project for the [Data Engineering Zoomcamp](https://github.com/DataTalksCl
 
 The goal of this project is to process the records of a bus service in New York City (NYC) and analyze the delays of registered at the bus stops.
 
+<img width="384" alt="Screenshot 2023-05-03 at 23 58 26" src="https://user-images.githubusercontent.com/5468601/236068696-e8ae368e-66a6-44cf-a4c8-732ca9018756.png">
+
 I try to answer the following (kind of silly...) questions:
 
 * What is the average delay on any given bus line in NYC?
@@ -48,6 +50,8 @@ I've used two data sources in this project:
 I've used a ETLT pipeline that I partially orchestrate via Prefect.
 As of now, the final transformations are manually performed by running `dbt` locally.
 
+![Screenshot 2023-05-03 at 23 43 00](https://user-images.githubusercontent.com/5468601/236068468-d62d0aa6-6fa7-464c-8073-addcb3ec73f8.png)
+
 ### Why the two 'Ts'? The issue with the `ScheduledArrivalTimeColumn` column...
 
 The `ScheduledArrivalTime` column sometimes shows time values such as `24:05:00`, without a date, which is quite annoying...
@@ -56,6 +60,8 @@ In order to pass it to a format like `2022-08-01 00:05:00` we apply the function
 Unfortunately, I did not find a nice way to handle this with `dbt` and macros, so I ended up just transforming the data before the **L**oad step.
 
 ### Dashboard
+
+![Screenshot 2023-05-03 at 23 55 33](https://user-images.githubusercontent.com/5468601/236068518-59225297-d89f-4b91-9edf-dbf14ffca9a2.png)
 
 1. Select {month, bus line(s), bus direction(s), day(s) of week}
 2. Sort by average delay per bus line on a table (you can click on a line of interest)
