@@ -16,6 +16,7 @@ pandas = "^1.5.3"
 pandas-gbq = "^0.19.1"
 dbt-core = "^1.4.5"
 dbt-bigquery = "^1.4.3"
+prefect-dbt = {extras = ["bigquery"], version = "^0.3.1"}
 
 [tool.poetry.group.dev.dependencies]
 notebook = "^6.5.3"
