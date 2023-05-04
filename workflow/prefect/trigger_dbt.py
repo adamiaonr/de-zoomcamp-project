@@ -18,7 +18,7 @@ def trigger_dbt_flow():
         ],
         project_dir="~/de-zoomcamp-project/workflow/dbt/nyc_bus/",
         dbt_cli_profile=dbt_cli_profile,
-        overwrite_profiles=True,
+        overwrite_profiles=False,
     ) as dbt_operation:
         dbt_process = dbt_operation.trigger()
         dbt_process.wait_for_completion()
