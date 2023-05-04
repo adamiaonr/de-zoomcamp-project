@@ -75,7 +75,7 @@ Unfortunately, I did not find a nice way to handle this with `dbt` and macros, s
 
 Try it out [here](https://lookerstudio.google.com/reporting/f500306b-9ba7-42d6-bfb6-92f570ff240b)!
 
-## Final production tables
+## Final production table
 
 | Field Name | Data Type | Description |
 |------------|-----------|-------------|
@@ -95,7 +95,9 @@ Try it out [here](https://lookerstudio.google.com/reporting/f500306b-9ba7-42d6-b
 | Humidity | FLOAT | Humidity percentage at the time of the record |
 | Temperature | FLOAT | Temperature in Celsius at the time of the record |
 
-### Comments
+## Model lineage
+
+
 
 ## Usage
 
