@@ -118,11 +118,14 @@ Try it out [here](https://lookerstudio.google.com/reporting/f500306b-9ba7-42d6-b
 ![Screenshot 2023-05-04 at 19 19 34](https://user-images.githubusercontent.com/5468601/236296520-7e64fb9b-fbd9-4109-a118-328b3a74f418.png)
 
 * 3 layer approach, with `staging`, `intermediate` and `mart` layers
-* In addition to the `mart` layer, I've used the concept of `dbt` [metrics](https://docs.getdbt.com/docs/build/metrics) to calculate aggregations of the bus delay over a month
+* In `staging/` we have the following transformations:
+    1. **NYC Bus data:** (i) renaming of columns; (ii) combination of vehicle latitude and longitude into a single-point `GEOGRAPHY`; and (iii) creation of record, bus stop and bus line IDs
+    2. **Weather data:** (i) tables are pivoted so that we have a `City` column (instead of 1 column per city); and (ii) temperature is converted from Kelvin to Celsius.
 * In the `intermediate` layer I've created a `int_bus_stops` dimension table, which lists all bus stops, together with their estimated location. The location of the bus stop is estimated by taking the average of the bus vehicle's coordinates when the bus is recorded to be 'at the stop'.
 * The `int_bus_delays` model is of type `incremental`. The idea is to incrementally calculate delays as new records become available in `stg_bus_records`.
 * The `int_bus_delays` and `bus_delays` tables are partitioned by the `RecordDateTime` field, with a month granularity. This is because the dashboard shows data aggregated over 1-month periods.
 * The `int_bus_delays` and `bus_delays` tables are clustered by `BusLineId`, `BusStopId` and `DayOfWeek`, following from the queries that are done in the dashboard.
+* In addition to the `mart` layer, I've used the concept of `dbt` [metrics](https://docs.getdbt.com/docs/build/metrics) to calculate aggregations of the bus delay over a month
 
 ## Usage
 
@@ -170,7 +173,7 @@ $ prefect deployment build "workflow/prefect/upload_weather_data.py:elt_main_flo
 ```
 
 ```
-prefect deployment build "workflow/prefect/trigger_dbt.py:trigger_dbt_flow" --name "Trigger dbt transformations" --work-queue "main" --storage-block "github/<your-gitub-block-name>" --path "workflow/prefect/" -o "workflow/prefect/deployments/trigger-dbt-cloud.yaml"  --override env.DBT_CLI_PROFILE_BLOCK="<your-dbt-cli-profile-block-name>"
+$ prefect deployment build "workflow/prefect/trigger_dbt.py:trigger_dbt_flow" --name "Trigger dbt transformations" --work-queue "main" --storage-block "github/<your-gitub-block-name>" --path "workflow/prefect/" -o "workflow/prefect/deployments/trigger-dbt-cloud.yaml"  --override env.DBT_CLI_PROFILE_BLOCK="<your-dbt-cli-profile-block-name>"
 ```
 
 6. Apply the Prefect deployments:
@@ -192,3 +195,11 @@ Your local agent should start downloading data from Kaggle and upload it to GBQ.
 
 At this point, you can take a look at the data in GBQ.
 Alternatively, you can head up to [Google Looker Studio](https://lookerstudio.google.com/), connect data sources to your GBQ tables and create a dashboard.
+
+## TODOs
+
+1. Is there something to be gained by partitioning/clustering the table with 'raw' bus records? We can do this via `terraform`, which allows us to specify the schema of the table, along with other configs.
+2. Join the different Prefect flows into a single script (or high-level flow).
+3. Script to create blocks.
+4. We have a lot of environment variables to keep track of. We need a smarter way to do this, and it doesn't need to be very complicated. E.g., a `.env` file + `python-dotenv`?.
+5. Make the orchestration step even more 'one-click' by running it using [serverless Prefect flows](https://medium.com/the-prefect-blog/serverless-prefect-flows-with-google-cloud-run-jobs-23edbf371175).
