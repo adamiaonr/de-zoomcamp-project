@@ -53,7 +53,7 @@ I've used a ETLT pipeline that I partially orchestrate via Prefect.
 ![Screenshot 2023-05-04 at 18 59 30](https://user-images.githubusercontent.com/5468601/236289636-846e72f2-4ee5-421b-b0d7-9145fd078f8b.png)
 
 * **1:** Use Prefect Cloud to (a) keep necessary blocks & deployments; and (b) trigger flows via the web UI. **Note:** the flows are ran in a local agent.
-* **2, 3 and 4:** Two of the Prefect flows are used to fetch data from Kaggle, pre-transform it, and ingest it directly into Google BigQuery.
+* **2, 3 and 4:** Two of the Prefect flows are used to fetch data from Kaggle, pre-transform it, and ingest it directly into Google BigQuery. In this case, Kaggle can be seen as the data lake.
 * **5:** An additional Prefect flow triggers all necessary `dbt` steps, i.e. installation of packages and transformations.
 * **6:** A dashboard built in Google Looker / Data Studio presents the data
 
